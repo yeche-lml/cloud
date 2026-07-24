@@ -1012,7 +1012,10 @@ body {
       <h2 class="cta__title">就现在，<br>告诉我<em>YES</em>？</h2>
       <p class="cta__sub">点一下就好。<br>（或者不点也行。喜欢你是我自己的事。）</p>
     </div>
-    <button class="btn btn--huge" onclick="alert('💖 收到。我会更努力喜欢你的。')">YES</button>
+    <div style="display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap;">
+      <button id="yes-btn" class="btn btn--huge" onclick="handleYesClick()">YES</button>
+      <span id="yes-count" style="font-family:'Bebas Neue',sans-serif; font-size:3rem; color:var(--red); -webkit-text-stroke:2px var(--black); display:none;"></span>
+    </div>
   </div>
 </section>
 
@@ -1051,5 +1054,78 @@ body {
 </footer>
 
 <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+<style>
+/* 彩蛋弹窗 */
+.easter-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,0.85);
+  display: flex; align-items: center; justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+.easter-box {
+  background: var(--yellow);
+  border: 6px solid var(--black);
+  box-shadow: 16px 16px 0 var(--hot-pink), 18px 18px 0 var(--black);
+  padding: clamp(2rem, 5vw, 4rem);
+  max-width: 520px; width: 90%;
+  text-align: center;
+  animation: popIn 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+.easter-box h2 {
+  font-family: 'Bebas Neue',sans-serif;
+  font-size: clamp(2rem, 6vw, 4rem);
+  color: var(--red); line-height: 1;
+  -webkit-text-stroke: 2px var(--black);
+  margin-bottom: 0.5em;
+}
+.easter-box p {
+  font-size: clamp(1rem, 2vw, 1.3rem);
+  color: var(--black); line-height: 1.6;
+  font-weight: 700;
+}
+.easter-box .easter-close {
+  font-family: 'Bebas Neue',sans-serif;
+  font-size: 1rem; margin-top: 1.5rem;
+  background: var(--red); color: var(--white);
+  border: 3px solid var(--black); padding: 0.6em 2em;
+  cursor: pointer; text-transform: uppercase; letter-spacing: 0.1em;
+}
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+@keyframes popIn { from{transform:scale(0.8);opacity:0} to{transform:scale(1);opacity:1} }
+</style>
+<script>
+(function(){
+  var STORAGE_KEY = 'yes_click_count_2026';
+  var count = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
+  var display = document.getElementById('yes-count');
+  var btn = document.getElementById('yes-btn');
+
+  function updateDisplay() {
+    if (count > 0) { display.style.display = ''; display.textContent = '×' + count; }
+  }
+  updateDisplay();
+
+  window.handleYesClick = function() {
+    count++;
+    localStorage.setItem(STORAGE_KEY, count);
+    updateDisplay();
+
+    if (count === 99) {
+      var overlay = document.createElement('div');
+      overlay.className = 'easter-overlay';
+      overlay.innerHTML = '<div class="easter-box"><h2>🎉 彩蛋</h2><p>云宝，恭喜你触发了彩蛋，<br>不管你是为了这个彩蛋也好，还是真的愿意，<br>此刻你只属于我，我爱你。</p><button class="easter-close" onclick="this.parentElement.parentElement.remove()">收到 ❤️</button></div>';
+      document.body.appendChild(overlay);
+    } else if (count < 99) {
+      btn.textContent = 'YES (' + (99 - count) + ')';
+    } else {
+      btn.textContent = 'YES ❤️';
+    }
+
+    btn.style.transform = 'scale(1.05)';
+    setTimeout(function(){ btn.style.transform = ''; }, 120);
+  };
+})();
+</script>
 
 </body></html>
