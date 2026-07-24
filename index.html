@@ -2,13 +2,13 @@
 <html lang="zh-CN"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FOR YOU 鈥?缁欎綘</title>
+<title>FOR YOU — 给你</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Noto+Sans+SC:wght@400;700;900&amp;display=swap" rel="stylesheet">
 <style>
 /* ========================================
-   FOR YOU 鈥?Brutalist Love Page
+   FOR YOU — Brutalist Love Page
    ======================================== */
 
 *, *::before, *::after {
@@ -146,7 +146,7 @@ body {
   z-index: 0;
 }
 
-/* CLOUDS 鈥?heart shaped */
+/* CLOUDS — heart shaped */
 .cloud {
   position: absolute;
   z-index: 1;
@@ -294,7 +294,7 @@ body {
   flex-wrap: wrap;
 }
 
-/* HERO VISUAL 鈥?Big rotated card with flowers */
+/* HERO VISUAL — Big rotated card with flowers */
 .hero__visual {
   position: relative;
   z-index: 2;
@@ -369,7 +369,7 @@ body {
 }
 .marquee__content span { margin: 0 1.5rem; }
 .marquee__content span::before {
-  content: '馃尭';
+  content: '🌸';
   margin-right: 0.5rem;
 }
 @keyframes scroll {
@@ -420,7 +420,7 @@ body {
   text-decoration-color: var(--red);
 }
 
-/* ---- MANIFESTO (榛戝簳澶ф) ---- */
+/* ---- MANIFESTO (黑底大段) ---- */
 .manifesto {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -552,7 +552,7 @@ body {
   letter-spacing: 0.1em;
 }
 
-/* ---- STATS (榛戝簳鏁板瓧) ---- */
+/* ---- STATS (黑底数字) ---- */
 .stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -581,7 +581,7 @@ body {
   margin-top: 0.3em;
 }
 
-/* ---- LETTER SECTION (鍒虹溂鐨勭孩搴曠櫧瀛? ---- */
+/* ---- LETTER SECTION (刺眼的红底白字) ---- */
 .letter {
   background: var(--red);
   color: var(--white);
@@ -764,16 +764,16 @@ body {
 
 <!-- ===== NAV ===== -->
 <nav class="nav">
-  <div class="nav__logo">FOR<span>路</span>YOU</div>
+  <div class="nav__logo">FOR<span>·</span>YOU</div>
   <ul class="nav__links">
-    <li><a href="#flowers">鑺?/a></li>
-    <li><a href="#manifesto">瀹ｈ█</a></li>
-    <li><a href="#letter">淇?/a></li>
+    <li><a href="#flowers">花</a></li>
+    <li><a href="#manifesto">宣言</a></li>
+    <li><a href="#letter">信</a></li>
   </ul>
-  <button class="nav__cta" onclick="document.getElementById('cta').scrollIntoView()">鍥炲簲鎴?/button>
+  <button class="nav__cta" onclick="document.getElementById('cta').scrollIntoView()">回应我</button>
 </nav>
 
-<!-- ===== HERO (钃濆ぉ + 鐖卞績浜? ===== -->
+<!-- ===== HERO (蓝天 + 爱心云) ===== -->
 <section class="hero">
   <div class="hero__sky"></div>
 
@@ -792,32 +792,32 @@ body {
   </div>
 
   <div class="hero__content">
-    <span class="hero__tag">EST. 2026 路 FOR YOU</span>
-    <h1 class="hero__headline">澶╀笂</h1>
-    <h1 class="hero__headline hero__headline--pink">閮芥槸</h1>
-    <h1 class="hero__headline">鐖卞績浜?/h1>
+    <span class="hero__tag">EST. 2026 · FOR YOU</span>
+    <h1 class="hero__headline">天上</h1>
+    <h1 class="hero__headline hero__headline--pink">都是</h1>
+    <h1 class="hero__headline">爱心云</h1>
     <p class="hero__sub">
-      鎴戞病鏈夌敎瑷€铚滆锛屽彧浼氬啓 HTML銆傜粰浣犲仛浜嗕竴涓彧灞炰簬浣犵殑椤甸潰銆?
-      钃濈殑銆佺櫧鐨勩€佺矇鐨勶紝閮芥槸鎴戠殑棰滆壊銆?
+      我没有甜言蜜语，只会写 HTML。给你做了一个只属于你的页面。
+      蓝的、白的、粉的，都是我的颜色。
     </p>
     <div class="hero__cta-group">
-      <button class="btn btn--yellow" onclick="document.getElementById('flowers').scrollIntoView()">鐪嬭姳</button>
-      <button class="btn btn--white" onclick="document.getElementById('letter').scrollIntoView()">鐪嬩俊</button>
+      <button class="btn btn--yellow" onclick="document.getElementById('flowers').scrollIntoView()">看花</button>
+      <button class="btn btn--white" onclick="document.getElementById('letter').scrollIntoView()">看信</button>
     </div>
   </div>
 
   <div class="hero__visual">
     <div class="card">
-      <div class="card__title">閫佷綘<br><em>涓€鏉?/em><br>椴滆姳</div>
+      <div class="card__title">送你<br><em>一束</em><br>鲜花</div>
       <div class="card__flowers">
-        <span class="flower" style="--rot:-12deg">馃尮</span>
-        <span class="flower" style="--rot:8deg">馃尫</span>
-        <span class="flower" style="--rot:-5deg">馃尭</span>
-        <span class="flower" style="--rot:14deg">馃尯</span>
-        <span class="flower" style="--rot:-8deg">馃尰</span>
-        <span class="flower" style="--rot:6deg">馃拹</span>
+        <span class="flower" style="--rot:-12deg">🌹</span>
+        <span class="flower" style="--rot:8deg">🌷</span>
+        <span class="flower" style="--rot:-5deg">🌸</span>
+        <span class="flower" style="--rot:14deg">🌺</span>
+        <span class="flower" style="--rot:-8deg">🌻</span>
+        <span class="flower" style="--rot:6deg">💐</span>
       </div>
-      <div class="card__meta">HAND-PICKED 路 2026-07-22</div>
+      <div class="card__meta">HAND-PICKED · 2026-07-22</div>
     </div>
   </div>
 </section>
@@ -838,169 +838,169 @@ body {
   </div>
 </div>
 
-<!-- ===== MANIFESTO (榛戝簳澶ф) ===== -->
+<!-- ===== MANIFESTO (黑底大段) ===== -->
 <section id="manifesto" class="section section--black">
-  <span class="section__label">[01] 瀹ｈ█</span>
-  <h2 class="section__title">鎴戣涓嶅嚭<br>鍔ㄤ汉鐨勮瘽</h2>
+  <span class="section__label">[01] 宣言</span>
+  <h2 class="section__title">我说不出<br>动人的话</h2>
 
   <div class="manifesto">
     <div class="manifesto__col">
-      <p>浣嗘垜鍙互<strong>涓轰綘鍐欎竴鏁翠釜澶忓ぉ</strong>锛屾妸瀹冨啓杩涗唬鐮侀噷銆佹妸澶╃┖<em>婕嗘垚绮夌孩鑹?/em>銆佹妸浜戞崗鎴?em>鐖卞績褰㈢姸</em>銆?/p>
-      <p>鎴戞病鏈夐捇鎴掞紝浣嗘湁涓€鏉?strong>CSS 椴滆姳</strong>銆傛垜娌℃湁璺戣溅锛屼絾鏈変竴涓?em>姘歌繙浜潃鐨勯〉闈?/em>銆?/p>
+      <p>但我可以<strong>为你写一整个夏天</strong>，把它写进代码里、把天空<em>漆成粉红色</em>、把云捏成<em>爱心形状</em>。</p>
+      <p>我没有钻戒，但有一束<strong>CSS 鲜花</strong>。我没有跑车，但有一个<em>永远亮着的页面</em>。</p>
     </div>
     <div class="manifesto__col">
-      <div class="manifesto__quote">"鍠滄浣?br>鏄垜鐨?br>榛樿閰嶇疆"</div>
-      <p>灏卞儚鎵撳紑娴忚鍣紝浣犲氨鍦ㄩ偅閲屻€?em>钃濆ぉ</em>鍦ㄩ偅閲岋紝<strong>鐖卞績浜?/strong>鍦ㄩ偅閲岋紝<em>鑺?/em>涔熷湪閭ｉ噷銆?/p>
+      <div class="manifesto__quote">"喜欢你<br>是我的<br>默认配置"</div>
+      <p>就像打开浏览器，你就在那里。<em>蓝天</em>在那里，<strong>爱心云</strong>在那里，<em>花</em>也在那里。</p>
     </div>
   </div>
 </section>
 
-<!-- ===== FLOWER GRID (褰╄壊鑺辩敯) ===== -->
+<!-- ===== FLOWER GRID (彩色花田) ===== -->
 <section id="flowers" class="section section--white">
-  <span class="section__label">[02] 浣犵殑鑺辩敯</span>
-  <h2 class="section__title">姣忎竴鏈?br>閮芥槸鎴戠殑蹇冩剰</h2>
+  <span class="section__label">[02] 你的花田</span>
+  <h2 class="section__title">每一朵<br>都是我的心意</h2>
 
   <div class="flower-grid">
     <article class="bloom">
       <span class="bloom__num">01</span>
-      <span class="bloom__icon">馃尮</span>
-      <h3 class="bloom__name">绾㈢帿鐟?/h3>
-      <p class="bloom__desc">鏈€缁忓吀鐨勯偅涓€鏈点€傜洿鎺ャ€佺儹鐑堛€佷笉闇€瑕佽В閲娿€?/p>
+      <span class="bloom__icon">🌹</span>
+      <h3 class="bloom__name">红玫瑰</h3>
+      <p class="bloom__desc">最经典的那一朵。直接、热烈、不需要解释。</p>
     </article>
     <article class="bloom">
       <span class="bloom__num">02</span>
-      <span class="bloom__icon">馃尫</span>
-      <h3 class="bloom__name">閮侀噾棣?/h3>
-      <p class="bloom__desc">鍚搫涓€鐐圭殑鍠滄锛屼絾鐪嬩竴鐪煎氨鐭ラ亾鏄槬澶┿€?/p>
+      <span class="bloom__icon">🌷</span>
+      <h3 class="bloom__name">郁金香</h3>
+      <p class="bloom__desc">含蓄一点的喜欢，但看一眼就知道是春天。</p>
     </article>
     <article class="bloom">
       <span class="bloom__num">03</span>
-      <span class="bloom__icon">馃尭</span>
-      <h3 class="bloom__name">妯辫姳</h3>
-      <p class="bloom__desc">椋庝竴鍚瑰氨婊″ぉ鐨勭矇锛屾尅閮芥尅涓嶄綇銆?/p>
+      <span class="bloom__icon">🌸</span>
+      <h3 class="bloom__name">樱花</h3>
+      <p class="bloom__desc">风一吹就满天的粉，挡都挡不住。</p>
     </article>
     <article class="bloom">
       <span class="bloom__num">04</span>
-      <span class="bloom__icon">馃尯</span>
-      <h3 class="bloom__name">鎵舵</h3>
-      <p class="bloom__desc">娴撶儓寰楀儚澶忓ぉ姝ｅ崍鐨勯槼鍏夛紝姣棤淇濈暀銆?/p>
+      <span class="bloom__icon">🌺</span>
+      <h3 class="bloom__name">扶桑</h3>
+      <p class="bloom__desc">浓烈得像夏天正午的阳光，毫无保留。</p>
     </article>
     <article class="bloom">
       <span class="bloom__num">05</span>
-      <span class="bloom__icon">馃尰</span>
-      <h3 class="bloom__name">鍚戞棩钁?/h3>
-      <p class="bloom__desc">姘歌繙鏈濈潃浣犺浆锛屼笉鍋忎笉鍊氾紝涓€澶╅兘涓嶈惤銆?/p>
+      <span class="bloom__icon">🌻</span>
+      <h3 class="bloom__name">向日葵</h3>
+      <p class="bloom__desc">永远朝着你转，不偏不倚，一天都不落。</p>
     </article>
     <article class="bloom">
       <span class="bloom__num">06</span>
-      <span class="bloom__icon">馃拹</span>
-      <h3 class="bloom__name">涓€鏉?/h3>
-      <p class="bloom__desc">浠€涔堣姳閮芥潵涓€鐐癸紝鍥犱负鍠滄浣犵殑鏂瑰紡涓嶆涓€绉嶃€?/p>
+      <span class="bloom__icon">💐</span>
+      <h3 class="bloom__name">一束</h3>
+      <p class="bloom__desc">什么花都来一点，因为喜欢你的方式不止一种。</p>
     </article>
     <article class="bloom">
       <span class="bloom__num">07</span>
-      <span class="bloom__icon">馃尲</span>
-      <h3 class="bloom__name">灏忛洀鑿?/h3>
-      <p class="bloom__desc">涓嶅紶鎵紝浣嗘槸姣忓ぉ閮藉紑銆傚睘浜庢棩甯哥殑閭ｇ鍠滄銆?/p>
+      <span class="bloom__icon">🌼</span>
+      <h3 class="bloom__name">小雏菊</h3>
+      <p class="bloom__desc">不张扬，但是每天都开。属于日常的那种喜欢。</p>
     </article>
     <article class="bloom">
       <span class="bloom__num">08</span>
-      <span class="bloom__icon">馃彽锔?/span>
-      <h3 class="bloom__name">涓€鏈?/h3>
-      <p class="bloom__desc">灏变竴鏈点€傚浜嗐€傚枩娆㈢殑瀹归噺鏈潵灏卞皬銆?/p>
+      <span class="bloom__icon">🏵️</span>
+      <h3 class="bloom__name">一朵</h3>
+      <p class="bloom__desc">就一朵。够了。喜欢的容量本来就小。</p>
     </article>
   </div>
 </section>
 
-<!-- ===== REASONS (绮夐粍鏉＄汗) ===== -->
+<!-- ===== REASONS (粉黄条纹) ===== -->
 <section class="section section--pink">
-  <span class="section__label">[03] 涓轰粈涔堟槸浣?/span>
-  <h2 class="section__title section__title--strike">鍒椾妇涓嶅畬</h2>
+  <span class="section__label">[03] 为什么是你</span>
+  <h2 class="section__title section__title--strike">列举不完</h2>
   <p style="font-size:clamp(1rem, 1.6vw, 1.2rem); max-width: 50ch; margin-bottom: 2rem;">
-    璇曠潃鍒椾簡鍑犳潯銆傚啓鍒扮鍏潯鐨勬椂鍊欏彂鐜帮紝姣忔潯閮芥槸浣犮€?
+    试着列了几条。写到第八条的时候发现，每条都是你。
   </p>
 
   <div class="reasons">
     <div class="reason">
       <div class="reason__num">01</div>
-      <div class="reason__text">浣犵瑧璧锋潵姣旀垜鐨勮摑澶╄繕瑕佸共鍑€<small>NO.01</small></div>
+      <div class="reason__text">你笑起来比我的蓝天还要干净<small>NO.01</small></div>
     </div>
     <div class="reason">
       <div class="reason__num">02</div>
-      <div class="reason__text">鍜屼綘璇磋瘽鐨勬椂闂存€绘槸杩囧緱鐗瑰埆蹇?small>NO.02</small></div>
+      <div class="reason__text">和你说话的时间总是过得特别快<small>NO.02</small></div>
     </div>
     <div class="reason">
       <div class="reason__num">03</div>
-      <div class="reason__text">浣犳兂浜嬫儏鐨勬牱瀛愮壒鍒鐪燂紝璁╂垜绉讳笉寮€鐪?small>NO.03</small></div>
+      <div class="reason__text">你想事情的样子特别认真，让我移不开眼<small>NO.03</small></div>
     </div>
     <div class="reason">
       <div class="reason__num">04</div>
-      <div class="reason__text">浣犲氨鏄垜姣忓ぉ鎵撳紑杩欎釜椤甸潰鐨勭悊鐢?small>NO.04</small></div>
+      <div class="reason__text">你就是我每天打开这个页面的理由<small>NO.04</small></div>
     </div>
     <div class="reason">
       <div class="reason__num">05</div>
-      <div class="reason__text">鍏ㄤ笘鐣岄兘鏈変簯锛屼絾鎴戝彧鎯宠鐖卞績褰㈢姸鐨勯偅绉?small>NO.05</small></div>
+      <div class="reason__text">全世界都有云，但我只想要爱心形状的那种<small>NO.05</small></div>
     </div>
     <div class="reason">
       <div class="reason__num">06</div>
-      <div class="reason__text">鎴戞兂鎶婃墍鏈夊ソ鐪嬬殑鑺遍兘閫佺粰浣犱竴閬?small>NO.06</small></div>
+      <div class="reason__text">我想把所有好看的花都送给你一遍<small>NO.06</small></div>
     </div>
     <div class="reason">
       <div class="reason__num">07</div>
-      <div class="reason__text">鍠滄浣狅紝鏄垜娌″啓杩涚畝鍘嗙殑涓讳慨璇?small>NO.07</small></div>
+      <div class="reason__text">喜欢你，是我没写进简历的主修课<small>NO.07</small></div>
     </div>
     <div class="reason">
       <div class="reason__num">08</div>
-      <div class="reason__text">娌℃湁绗叓鏉′簡銆?br>鍥犱负鍐欏埌杩欓噷锛屽凡缁忓浜?small>NO.08 路 END</small></div>
+      <div class="reason__text">没有第八条了。<br>因为写到这里，已经够了<small>NO.08 · END</small></div>
     </div>
   </div>
 </section>
 
-<!-- ===== STATS (榛戝簳绮夊潡鏁板瓧) ===== -->
+<!-- ===== STATS (黑底粉块数字) ===== -->
 <section class="section section--black">
-  <span class="section__label">[04] 鏁版嵁</span>
-  <h2 class="section__title">鐢ㄦ暟瀛楄璇?/h2>
+  <span class="section__label">[04] 数据</span>
+  <h2 class="section__title">用数字说话</h2>
 
   <div class="stats">
     <div class="stat">
-      <div class="stat__num">鈭?/div>
-      <div class="stat__label">鎯充綘鐨勬鏁?/div>
+      <div class="stat__num">∞</div>
+      <div class="stat__label">想你的次数</div>
     </div>
     <div class="stat">
       <div class="stat__num">100%</div>
-      <div class="stat__label">璇氭剰</div>
+      <div class="stat__label">诚意</div>
     </div>
     <div class="stat">
       <div class="stat__num">365</div>
-      <div class="stat__label">鎯冲拰浣犺繃鐨勬棩瀛?/div>
+      <div class="stat__label">想和你过的日子</div>
     </div>
     <div class="stat">
       <div class="stat__num">1</div>
-      <div class="stat__label">灏辨槸浣?/div>
+      <div class="stat__label">就是你</div>
     </div>
   </div>
 </section>
 
-<!-- ===== LETTER (绾㈠簳鐧藉瓧) ===== -->
+<!-- ===== LETTER (红底白字) ===== -->
 <section id="letter" class="section letter">
-  <span class="letter__stamp">DEAR YOU 路 2026.07.22</span>
-  <h2 class="letter__title">缁欎綘鐨勪俊</h2>
+  <span class="letter__stamp">DEAR YOU · 2026.07.22</span>
+  <h2 class="letter__title">给你的信</h2>
   <div class="letter__text">
-    <p>瑙佷俊濂姐€?/p>
+    <p>见信好。</p>
     <p style="margin-top:1em;">
-      鎴戜笉鏄釜浼氳璇濈殑浜猴紝浣嗘湁浜涜瘽鎲嬪湪蹇冮噷澶箙浼?strong>杩囨湡</strong>銆傛墍浠ユ垜閫夋嫨鐢ㄦ垜浼氱殑锛屽啓缁欎綘鐪嬨€?
+      我不是个会说话的人，但有些话憋在心里太久会<strong>过期</strong>。所以我选择用我会的，写给你看。
     </p>
     <p style="margin-top:1em;">
-      鎴戝仛浜嗕竴涓〉闈€?strong>钃濆ぉ</strong>鏄垜缁欎綘鐣欑殑鍛煎惛锛?strong>鐖卞績浜?/strong>鏄垜姣忔鎯冲埌浣犳椂涓嶅皬蹇冩紡鍑烘潵鐨勫舰鐘讹紝<strong>鑺?/strong>鏄垜鎵€鏈夎涓嶅嚭鍙ｇ殑"鍠滄"銆?
+      我做了一个页面。<strong>蓝天</strong>是我给你留的呼吸，<strong>爱心云</strong>是我每次想到你时不小心漏出来的形状，<strong>花</strong>是我所有说不出口的"喜欢"。
     </p>
     <p style="margin-top:1em;">
-      涓嶉渶瑕佸洖搴斻€?
+      不需要回应。
     </p>
     <p style="margin-top:1em;">
-      浣嗗鏋滀綘鎰挎剰锛?strong>鎴戝笇鏈涜兘涓€鐩?/strong>锛屽湪浣犲乏鍙炽€?
+      但如果你愿意，<strong>我希望能一直</strong>，在你左右。
     </p>
   </div>
-  <div class="letter__sig">鈥?涓€鐩撮兘鍦ㄧ殑 鉁?/div>
+  <div class="letter__sig">— 一直都在的 ✦</div>
 </section>
 
 <!-- ===== CTA ===== -->
@@ -1009,10 +1009,10 @@ body {
   <div class="cta__grid">
     <div>
       <span class="section__label">[READY]</span>
-      <h2 class="cta__title">灏辩幇鍦紝<br>鍛婅瘔鎴?em>YES</em>锛?/h2>
-      <p class="cta__sub">鐐逛竴涓嬪氨濂姐€?br>锛堟垨鑰呬笉鐐逛篃琛屻€傚枩娆綘鏄垜鑷繁鐨勪簨銆傦級</p>
+      <h2 class="cta__title">就现在，<br>告诉我<em>YES</em>？</h2>
+      <p class="cta__sub">点一下就好。<br>（或者不点也行。喜欢你是我自己的事。）</p>
     </div>
-    <button class="btn btn--huge" onclick="alert('馃挅 鏀跺埌銆傛垜浼氭洿鍔姏鍠滄浣犵殑銆?)">YES</button>
+    <button class="btn btn--huge" onclick="alert('💖 收到。我会更努力喜欢你的。')">YES</button>
   </div>
 </section>
 
@@ -1022,30 +1022,30 @@ body {
 <!-- ===== FOOTER ===== -->
 <footer class="footer">
   <div>
-    <div class="footer__brand">FOR<span>路</span>YOU</div>
-    <p class="footer__copy">杩欎釜椤甸潰娌℃湁鍙戝竷鍒颁换浣曞湴鏂广€?br>鍙彂缁欎簡涓€涓汉銆?br>2026.07.22 鈥?涓€鐩淬€?/p>
+    <div class="footer__brand">FOR<span>·</span>YOU</div>
+    <p class="footer__copy">这个页面没有发布到任何地方。<br>只发给了一个人。<br>2026.07.22 — 一直。</p>
   </div>
   <div>
-    <h5 class="footer__heading">鍏充簬</h5>
+    <h5 class="footer__heading">关于</h5>
     <ul class="footer__links">
-      <li><a href="#manifesto">瀹ｈ█</a></li>
-      <li><a href="#flowers">鑺辩敯</a></li>
-      <li><a href="#letter">缁欎綘鐨勪俊</a></li>
+      <li><a href="#manifesto">宣言</a></li>
+      <li><a href="#flowers">花田</a></li>
+      <li><a href="#letter">给你的信</a></li>
     </ul>
   </div>
   <div>
-    <h5 class="footer__heading">鑱旂郴</h5>
+    <h5 class="footer__heading">联系</h5>
     <ul class="footer__links">
-      <li><a href="#">寰俊</a></li>
-      <li><a href="#">鐢佃瘽</a></li>
-      <li><a href="#">褰撻潰璇?/a></li>
+      <li><a href="#">微信</a></li>
+      <li><a href="#">电话</a></li>
+      <li><a href="#">当面说</a></li>
     </ul>
   </div>
   <div class="footer__bottom">
-    漏 2026 FOR路YOU. NO RIGHTS RESERVED 鈥?JUST FOR ONE PERSON.
+    © 2026 FOR·YOU. NO RIGHTS RESERVED — JUST FOR ONE PERSON.
     <span style="margin-left: 1.5em; opacity: 0.7;">
-      <span id="busuanzi_container_site_pv">馃憖 <span id="busuanzi_value_site_pv"></span> 娆?/span>
-      <span style="margin-left: 1em;" id="busuanzi_container_site_uv">馃懁 <span id="busuanzi_value_site_uv"></span> 浜?/span>
+      <span id="busuanzi_container_site_pv">👀 <span id="busuanzi_value_site_pv"></span> 次</span>
+      <span style="margin-left: 1em;" id="busuanzi_container_site_uv">👤 <span id="busuanzi_value_site_uv"></span> 人</span>
     </span>
   </div>
 </footer>
