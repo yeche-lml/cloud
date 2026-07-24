@@ -2,181 +2,225 @@
 <html lang="zh-CN"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>红玫瑰 — FOR YOU</title>
+<title>玫瑰花海 — FOR YOU</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+SC:wght@400;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+
 body{
   font-family:'Noto Sans SC',sans-serif;
-  background:#0a0a0a;
-  color:#fff;
-  overflow-x:hidden;
-  min-height:100vh;
+  overflow:hidden;
+  height:100vh;
+  width:100vw;
+  cursor:default;
 }
-/* Strips */
-.strip{height:10px;width:100%}.strip--red{background:oklch(55% 0.22 25)}.strip--pink{background:oklch(72% 0.18 350)}.strip--black{border-bottom:3px solid #0a0a0a}
 
-/* Back */
-.back{
+/* 天空 */
+.sky{
+  position:fixed;inset:0;
+  background:linear-gradient(180deg,
+    oklch(72% 0.13 230) 0%,
+    oklch(78% 0.10 225) 30%,
+    oklch(84% 0.07 210) 55%,
+    oklch(90% 0.05 180) 80%,
+    oklch(75% 0.18 145) 100%
+  );
+}
+
+/* 太阳 */
+.sun{
+  position:fixed;
+  top:8%;right:15%;
+  width:clamp(80px,12vw,150px);height:clamp(80px,12vw,150px);
+  background:radial-gradient(circle,oklch(95% 0.18 90) 0%,oklch(85% 0.20 80) 40%,transparent 70%);
+  border-radius:50%;
+  box-shadow:0 0 60px oklch(88% 0.15 95 / 0.6),0 0 120px oklch(90% 0.12 85 / 0.3);
+  animation:sunPulse 4s ease-in-out infinite;
+  z-index:2;
+}
+@keyframes sunPulse{
+  0%,100%{transform:scale(1);opacity:0.9}
+  50%{transform:scale(1.08);opacity:1}
+}
+
+/* 云 */
+.cloud{
+  position:fixed;
+  background:white;
+  border-radius:50%;
+  z-index:3;
+  opacity:0.85;
+  filter:blur(2px);
+}
+.cloud::before,.cloud::after{
+  content:'';position:absolute;
+  background:white;border-radius:50%;
+}
+.cloud-1{
+  width:120px;height:50px;
+  top:15%;left:10%;
+  animation:cloudDrift 35s linear infinite;
+}
+.cloud-1::before{width:60px;height:60px;top:-30px;left:20px}
+.cloud-1::after{width:80px;height:45px;top:-15px;left:50px}
+
+.cloud-2{
+  width:100px;height:40px;
+  top:25%;left:55%;
+  animation:cloudDrift 45s linear infinite;
+  animation-delay:-15s;
+}
+.cloud-2::before{width:50px;height:50px;top:-25px;left:15px}
+.cloud-2::after{width:65px;height:38px;top:-12px;left:45px}
+
+.cloud-3{
+  width:90px;height:35px;
+  top:10%;left:75%;
+  animation:cloudDrift 40s linear infinite;
+  animation-delay:-25s;
+}
+.cloud-3::before{width:45px;height:45px;top:-22px;left:12px}
+.cloud-3::after{width:55px;height:32px;top:-10px;left:40px}
+
+.cloud-4{
+  width:140px;height:55px;
+  top:32%;left:30%;
+  animation:cloudDrift 50s linear infinite;
+  animation-delay:-8s;
+}
+.cloud-4::before{width:70px;height:65px;top:-32px;left:25px}
+.cloud-4::after{width:90px;height:50px;top:-18px;left:60px}
+
+@keyframes cloudDrift{
+  0%{transform:translateX(0)}
+  100%{transform:translateX(120px)}
+}
+
+/* 花海容器 */
+.field{
+  position:fixed;
+  bottom:0;left:0;right:0;
+  height:65vh;
+  z-index:5;
+  perspective:800px;
+  perspective-origin:50% 80%;
+}
+
+/* 远景层 - 小、半透明、更远 */
+.rose-layer{position:absolute;inset:0}
+.rose{
+  position:absolute;
+  display:inline-block;
+  pointer-events:none;
+  animation:sway var(--sway-dur, 4s) ease-in-out infinite;
+  animation-delay:var(--sway-delay, 0s);
+  transform-origin:bottom center;
+  filter:drop-shadow(1px 2px 2px rgba(0,0,0,0.15));
+}
+
+@keyframes sway{
+  0%,100%{transform:translateX(0) rotate(var(--base-rot, 0deg))}
+  25%{transform:translateX(var(--sway-x, 3px)) rotate(calc(var(--base-rot, 0deg) + var(--sway-r, 3deg)))}
+  75%{transform:translateX(calc(var(--sway-x, 3px) * -1)) rotate(calc(var(--base-rot, 0deg) - var(--sway-r, 3deg)))}
+}
+
+/* 标题 */
+.overlay{
+  position:fixed;
+  bottom:clamp(2rem,8vh,5rem);
+  left:50%;
+  transform:translateX(-50%);
+  z-index:10;
+  text-align:center;
+  pointer-events:none;
+}
+.overlay__title{
   font-family:'Bebas Neue',sans-serif;
-  position:fixed;top:1rem;left:1rem;z-index:100;
+  font-size:clamp(3rem,10vw,8rem);
+  color:white;
+  -webkit-text-stroke:clamp(2px,0.5vw,5px) oklch(55% 0.22 25);
+  text-shadow:6px 6px 0 oklch(55% 0.22 25);
+  line-height:0.9;
+  text-transform:uppercase;
+}
+.overlay__sub{
+  font-size:clamp(0.9rem,2vw,1.2rem);
+  color:white;
+  text-shadow:2px 2px 0 oklch(55% 0.22 25);
+  margin-top:0.5em;
+  font-weight:700;
+}
+
+/* 返回 */
+.back{
+  position:fixed;top:1.2rem;left:1.2rem;z-index:20;
+  font-family:'Bebas Neue',sans-serif;
   background:oklch(55% 0.22 25);color:#fff;
-  border:3px solid #0a0a0a;padding:0.5em 1.2em;
-  font-size:1rem;text-transform:uppercase;letter-spacing:0.1em;
+  border:3px solid #0a0a0a;
+  padding:0.5em 1.2em;font-size:1rem;
+  text-transform:uppercase;letter-spacing:0.1em;
   text-decoration:none;cursor:pointer;
   box-shadow:4px 4px 0 #0a0a0a;
   transition:transform 0.1s;
+  pointer-events:auto;
 }
 .back:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 #0a0a0a}
-
-/* Hero */
-.hero{
-  min-height:50vh;
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  text-align:center;
-  padding:4rem 1rem 2rem;
-  position:relative;
-}
-.hero__num{
-  font-family:'Bebas Neue',sans-serif;
-  font-size:clamp(6rem,15vw,12rem);
-  color:oklch(60% 0.22 350);
-  -webkit-text-stroke:clamp(3px,0.6vw,6px) #0a0a0a;
-  line-height:0.8;
-}
-.hero__title{
-  font-family:'Bebas Neue',sans-serif;
-  font-size:clamp(3rem,10vw,8rem);
-  color:#fff;
-  -webkit-text-stroke:clamp(2px,0.5vw,5px) #0a0a0a;
-  text-transform:uppercase;
-  line-height:0.9;
-  margin:0.2em 0;
-}
-.hero__sub{
-  font-size:clamp(1rem,2vw,1.3rem);
-  max-width:40ch;
-  opacity:0.8;
-  margin-top:1rem;
-}
-
-/* Falling roses */
-.rose-fall{
-  position:fixed;inset:0;pointer-events:none;z-index:0;
-  overflow:hidden;
-}
-.rose-fall span{
-  position:absolute;
-  font-size:clamp(1.5rem,4vw,3rem);
-  animation:fall linear infinite;
-  opacity:0.6;
-}
-@keyframes fall{
-  0%{transform:translateY(-10vh) rotate(0deg);opacity:0.8}
-  80%{opacity:0.5}
-  100%{transform:translateY(110vh) rotate(720deg);opacity:0}
-}
-
-/* Grid */
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(80px,1fr));
-  gap:0.5rem;
-  padding:1rem;
-  position:relative;z-index:1;
-  max-width:900px;
-  margin:0 auto 3rem;
-}
-.grid span{
-  font-size:clamp(2rem,5vw,4rem);
-  display:flex;align-items:center;justify-content:center;
-  padding:1rem;
-  background:oklch(55% 0.22 25 / 0.15);
-  border-radius:4px;
-  transition:transform 0.15s,background 0.15s;
-  cursor:default;
-  filter:drop-shadow(2px 2px 0 #0a0a0a);
-}
-.grid span:hover{
-  transform:scale(1.2) rotate(-5deg);
-  background:oklch(55% 0.22 25 / 0.35);
-}
-
-/* Quote */
-.quote{
-  text-align:center;
-  padding:3rem 1rem;
-  position:relative;z-index:1;
-  border-top:4px solid oklch(55% 0.22 25);
-  border-bottom:4px solid oklch(55% 0.22 25);
-  margin:0 1rem 3rem;
-}
-.quote p{
-  font-family:'Bebas Neue',sans-serif;
-  font-size:clamp(2rem,5vw,4rem);
-  color:oklch(60% 0.22 350);
-  -webkit-text-stroke:2px #0a0a0a;
-  text-transform:uppercase;
-  line-height:1.1;
-}
-
-/* Footer */
-.footer{
-  text-align:center;padding:2rem 1rem 3rem;
-  font-size:0.85rem;opacity:0.5;
-  position:relative;z-index:1;
-}
 </style>
 </head>
 <body>
 
-<a class="back" href="index.html">← 回花田</a>
+<div class="sky"></div>
 
-<div class="strip strip--red"></div>
-<div class="strip strip--pink"></div>
+<div class="sun"></div>
 
-<div class="rose-fall" id="roseFall"></div>
+<div class="cloud cloud-1"></div>
+<div class="cloud cloud-2"></div>
+<div class="cloud cloud-3"></div>
+<div class="cloud cloud-4"></div>
 
-<section class="hero" style="position:relative;z-index:1">
-  <div class="hero__num">01</div>
-  <h1 class="hero__title">红玫瑰</h1>
-  <p class="hero__sub">最经典的那一朵。直接、热烈、不需要解释。</p>
-</section>
-
-<div class="grid" id="roseGrid"></div>
-
-<div class="quote">
-  <p>"喜欢你的方式<br>只有一种<br>就是全部"</p>
+<div class="field">
+  <div class="rose-layer" id="layer-back"></div>
+  <div class="rose-layer" id="layer-mid"></div>
+  <div class="rose-layer" id="layer-front"></div>
 </div>
 
-<div class="footer">FOR·YOU — 红玫瑰花田</div>
+<div class="overlay">
+  <h1 class="overlay__title">红玫瑰</h1>
+  <p class="overlay__sub">最经典的那一朵。直接、热烈、不需要解释。</p>
+</div>
 
-<div class="strip strip--red"></div>
-<div class="strip strip--pink"></div>
+<a class="back" href="index.html">← 回花田</a>
 
 <script>
 (function(){
-  var fall = document.getElementById('roseFall');
-  for(var i=0;i<40;i++){
-    var s = document.createElement('span');
-    s.textContent = '🌹';
-    s.style.left = Math.random()*100+'%';
-    s.style.animationDuration = (Math.random()*6+6)+'s';
-    s.style.animationDelay = Math.random()*8+'s';
-    s.style.fontSize = (Math.random()*2+1.5)+'rem';
-    fall.appendChild(s);
+  function spawnRoses(containerId, count, sizeRange, yRange, opacityRange){
+    var c = document.getElementById(containerId);
+    for(var i=0;i<count;i++){
+      var r = document.createElement('span');
+      r.className='rose';
+      r.textContent='🌹';
+      var size = sizeRange[0] + Math.random()*(sizeRange[1]-sizeRange[0]);
+      r.style.fontSize = size+'px';
+      r.style.left = Math.random()*100+'%';
+      r.style.top = (yRange[0]+Math.random()*(yRange[1]-yRange[0]))+'%';
+      r.style.opacity = opacityRange[0]+Math.random()*(opacityRange[1]-opacityRange[0]);
+      r.style.setProperty('--sway-dur', (2.5+Math.random()*3)+'s');
+      r.style.setProperty('--sway-delay', Math.random()*5+'s');
+      r.style.setProperty('--base-rot', (Math.random()*30-15)+'deg');
+      r.style.setProperty('--sway-x', (2+Math.random()*6)+'px');
+      r.style.setProperty('--sway-r', (Math.random()*4)+'deg');
+      c.appendChild(r);
+    }
   }
 
-  var grid = document.getElementById('roseGrid');
-  for(var j=0;j<99;j++){
-    var g = document.createElement('span');
-    g.textContent = '🌹';
-    g.style.transform = 'rotate('+(Math.random()*30-15)+'deg)';
-    grid.appendChild(g);
-  }
+  // 远景: 小、淡、高处
+  spawnRoses('layer-back', 80,  [14,26], [0, 30], [0.25,0.45]);
+  // 中景: 中等、适中
+  spawnRoses('layer-mid',  100, [24,42], [15,55], [0.5,0.75]);
+  // 近景: 大、清晰、底部
+  spawnRoses('layer-front',90,  [38,70], [35,75], [0.8,1.0]);
 })();
 </script>
 
