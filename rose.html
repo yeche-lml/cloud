@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>红玫瑰 — FOR YOU</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+SC:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'Noto Sans SC',sans-serif;
+  background:#0a0a0a;
+  color:#fff;
+  overflow-x:hidden;
+  min-height:100vh;
+}
+/* Strips */
+.strip{height:10px;width:100%}.strip--red{background:oklch(55% 0.22 25)}.strip--pink{background:oklch(72% 0.18 350)}.strip--black{border-bottom:3px solid #0a0a0a}
+
+/* Back */
+.back{
+  font-family:'Bebas Neue',sans-serif;
+  position:fixed;top:1rem;left:1rem;z-index:100;
+  background:oklch(55% 0.22 25);color:#fff;
+  border:3px solid #0a0a0a;padding:0.5em 1.2em;
+  font-size:1rem;text-transform:uppercase;letter-spacing:0.1em;
+  text-decoration:none;cursor:pointer;
+  box-shadow:4px 4px 0 #0a0a0a;
+  transition:transform 0.1s;
+}
+.back:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 #0a0a0a}
+
+/* Hero */
+.hero{
+  min-height:50vh;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;
+  padding:4rem 1rem 2rem;
+  position:relative;
+}
+.hero__num{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(6rem,15vw,12rem);
+  color:oklch(60% 0.22 350);
+  -webkit-text-stroke:clamp(3px,0.6vw,6px) #0a0a0a;
+  line-height:0.8;
+}
+.hero__title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(3rem,10vw,8rem);
+  color:#fff;
+  -webkit-text-stroke:clamp(2px,0.5vw,5px) #0a0a0a;
+  text-transform:uppercase;
+  line-height:0.9;
+  margin:0.2em 0;
+}
+.hero__sub{
+  font-size:clamp(1rem,2vw,1.3rem);
+  max-width:40ch;
+  opacity:0.8;
+  margin-top:1rem;
+}
+
+/* Falling roses */
+.rose-fall{
+  position:fixed;inset:0;pointer-events:none;z-index:0;
+  overflow:hidden;
+}
+.rose-fall span{
+  position:absolute;
+  font-size:clamp(1.5rem,4vw,3rem);
+  animation:fall linear infinite;
+  opacity:0.6;
+}
+@keyframes fall{
+  0%{transform:translateY(-10vh) rotate(0deg);opacity:0.8}
+  80%{opacity:0.5}
+  100%{transform:translateY(110vh) rotate(720deg);opacity:0}
+}
+
+/* Grid */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(80px,1fr));
+  gap:0.5rem;
+  padding:1rem;
+  position:relative;z-index:1;
+  max-width:900px;
+  margin:0 auto 3rem;
+}
+.grid span{
+  font-size:clamp(2rem,5vw,4rem);
+  display:flex;align-items:center;justify-content:center;
+  padding:1rem;
+  background:oklch(55% 0.22 25 / 0.15);
+  border-radius:4px;
+  transition:transform 0.15s,background 0.15s;
+  cursor:default;
+  filter:drop-shadow(2px 2px 0 #0a0a0a);
+}
+.grid span:hover{
+  transform:scale(1.2) rotate(-5deg);
+  background:oklch(55% 0.22 25 / 0.35);
+}
+
+/* Quote */
+.quote{
+  text-align:center;
+  padding:3rem 1rem;
+  position:relative;z-index:1;
+  border-top:4px solid oklch(55% 0.22 25);
+  border-bottom:4px solid oklch(55% 0.22 25);
+  margin:0 1rem 3rem;
+}
+.quote p{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(2rem,5vw,4rem);
+  color:oklch(60% 0.22 350);
+  -webkit-text-stroke:2px #0a0a0a;
+  text-transform:uppercase;
+  line-height:1.1;
+}
+
+/* Footer */
+.footer{
+  text-align:center;padding:2rem 1rem 3rem;
+  font-size:0.85rem;opacity:0.5;
+  position:relative;z-index:1;
+}
+</style>
+</head>
+<body>
+
+<a class="back" href="index.html">← 回花田</a>
+
+<div class="strip strip--red"></div>
+<div class="strip strip--pink"></div>
+
+<div class="rose-fall" id="roseFall"></div>
+
+<section class="hero" style="position:relative;z-index:1">
+  <div class="hero__num">01</div>
+  <h1 class="hero__title">红玫瑰</h1>
+  <p class="hero__sub">最经典的那一朵。直接、热烈、不需要解释。</p>
+</section>
+
+<div class="grid" id="roseGrid"></div>
+
+<div class="quote">
+  <p>"喜欢你的方式<br>只有一种<br>就是全部"</p>
+</div>
+
+<div class="footer">FOR·YOU — 红玫瑰花田</div>
+
+<div class="strip strip--red"></div>
+<div class="strip strip--pink"></div>
+
+<script>
+(function(){
+  var fall = document.getElementById('roseFall');
+  for(var i=0;i<40;i++){
+    var s = document.createElement('span');
+    s.textContent = '🌹';
+    s.style.left = Math.random()*100+'%';
+    s.style.animationDuration = (Math.random()*6+6)+'s';
+    s.style.animationDelay = Math.random()*8+'s';
+    s.style.fontSize = (Math.random()*2+1.5)+'rem';
+    fall.appendChild(s);
+  }
+
+  var grid = document.getElementById('roseGrid');
+  for(var j=0;j<99;j++){
+    var g = document.createElement('span');
+    g.textContent = '🌹';
+    g.style.transform = 'rotate('+(Math.random()*30-15)+'deg)';
+    grid.appendChild(g);
+  }
+})();
+</script>
+
+</body></html>
