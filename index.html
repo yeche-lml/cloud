@@ -1095,14 +1095,114 @@ body {
 @keyframes popIn { from{transform:scale(0.8);opacity:0} to{transform:scale(1);opacity:1} }
 </style>
 <script>
+// ===== Visitor Logging + YES Click Tracking =====
 (function(){
+  var LOG_API = 'https://jsonblob.com/api/jsonBlob/019f97e4-4354-794f-b62b-cb46962d2042';
+  var SESSION_KEY = 'cloud_visitor_session';
   var STORAGE_KEY = 'yes_click_count_2026';
+  var LOGGED_VISIT_KEY = 'cloud_visit_logged_' + new Date().toISOString().slice(0,10);
+
+  // Session ID
+  var sessionId = localStorage.getItem(SESSION_KEY);
+  if (!sessionId) {
+    sessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem(SESSION_KEY, sessionId);
+  }
+
+  // Visitor info cache
+  var visitorInfo = null;
+
+  function getVisitorInfo(cb) {
+    if (visitorInfo) return cb(visitorInfo);
+    fetch('https://api.ipify.org?format=json')
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        var ip = d.ip;
+        fetch('https://ipapi.co/' + ip + '/json/')
+          .then(function(r){ return r.json(); })
+          .then(function(loc){
+            visitorInfo = {
+              ip: ip,
+              city: loc.city || '未知',
+              region: loc.region || '未知',
+              country: loc.country_name || '未知',
+              org: loc.org || ''
+            };
+            cb(visitorInfo);
+          })
+          .catch(function(){
+            visitorInfo = { ip: ip, city: '未知', region: '未知', country: '未知', org: '' };
+            cb(visitorInfo);
+          });
+      })
+      .catch(function(){
+        visitorInfo = { ip: '未知', city: '未知', region: '未知', country: '未知', org: '' };
+        cb(visitorInfo);
+      });
+  }
+
+  function appendLog(entry, retries) {
+    retries = retries || 0;
+    if (retries > 3) return;
+    fetch(LOG_API, { cache: 'no-store' })
+      .then(function(r){ return r.json(); })
+      .then(function(content){
+        content.lastLogId = (content.lastLogId || 0) + 1;
+        entry.id = content.lastLogId;
+        entry.sessionId = sessionId;
+        if (entry.type === 'visit') content.visits.push(entry);
+        else content.yesClicks.push(entry);
+        return fetch(LOG_API, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(content)
+        });
+      })
+      .catch(function(e){
+        if (retries < 3) setTimeout(function(){ appendLog(entry, retries+1); }, 500 * (retries+1));
+      });
+  }
+
+  function logVisit() {
+    if (localStorage.getItem(LOGGED_VISIT_KEY)) return;
+    getVisitorInfo(function(info){
+      var entry = {
+        type: 'visit',
+        ip: info.ip,
+        city: info.city,
+        region: info.region,
+        country: info.country,
+        org: info.org,
+        time: new Date().toISOString(),
+        userAgent: navigator.userAgent.substring(0, 200)
+      };
+      appendLog(entry);
+      localStorage.setItem(LOGGED_VISIT_KEY, '1');
+    });
+  }
+
+  function logYesClick(cumulativeCount) {
+    getVisitorInfo(function(info){
+      var entry = {
+        type: 'yesClick',
+        ip: info.ip,
+        city: info.city,
+        region: info.region,
+        country: info.country,
+        time: new Date().toISOString(),
+        cumulativeCount: cumulativeCount
+      };
+      appendLog(entry);
+    });
+  }
+
+  // YES button logic
   var count = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
   var display = document.getElementById('yes-count');
   var btn = document.getElementById('yes-btn');
 
   function updateDisplay() {
-    if (count > 0) { display.style.display = ''; display.textContent = '×' + count; }
+    if (count > 0) { display.style.display = ''; display.textContent = '\u00d7' + count; }
   }
   updateDisplay();
 
@@ -1110,21 +1210,24 @@ body {
     count++;
     localStorage.setItem(STORAGE_KEY, count);
     updateDisplay();
+    logYesClick(count);
 
     if (count === 99) {
       var overlay = document.createElement('div');
       overlay.className = 'easter-overlay';
-      overlay.innerHTML = '<div class="easter-box"><h2>🎉 彩蛋</h2><p>云宝，恭喜你触发了彩蛋，<br>不管你是为了这个彩蛋也好，还是真的愿意，<br>此刻你只属于我，我爱你。</p><button class="easter-close" onclick="this.parentElement.parentElement.remove()">收到 ❤️</button></div>';
+      overlay.innerHTML = '<div class="easter-box"><h2>\ud83c\udf89 \u5f69\u86cb</h2><p>\u4e91\u5b9d\uff0c\u606d\u559c\u4f60\u89e6\u53d1\u4e86\u5f69\u86cb\uff0c<br>\u4e0d\u7ba1\u4f60\u662f\u4e3a\u4e86\u8fd9\u4e2a\u5f69\u86cb\u4e5f\u597d\uff0c\u8fd8\u662f\u771f\u7684\u613f\u610f\uff0c<br>\u6b64\u523b\u4f60\u53ea\u5c5e\u4e8e\u6211\uff0c\u6211\u7231\u4f60\u3002</p><button class="easter-close" onclick="this.parentElement.parentElement.remove()">\u6536\u5230 \u2764\ufe0f</button></div>';
       document.body.appendChild(overlay);
     } else if (count < 99) {
       btn.textContent = 'YES (' + (99 - count) + ')';
     } else {
-      btn.textContent = 'YES ❤️';
+      btn.textContent = 'YES \u2764\ufe0f';
     }
-
     btn.style.transform = 'scale(1.05)';
     setTimeout(function(){ btn.style.transform = ''; }, 120);
   };
+
+  // Log visit on page load
+  setTimeout(logVisit, 800);
 })();
 </script>
 
