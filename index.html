@@ -1095,95 +1095,187 @@ body {
 @keyframes popIn { from{transform:scale(0.8);opacity:0} to{transform:scale(1);opacity:1} }
 </style>
 <script>
-// ===== Visitor Logging + YES Click Tracking =====
+// ===== Visitor Logging + YES Click Tracking (v2 健壮版) =====
 (function(){
+  'use strict';
+
+  // 强制在 iframe/WebView 中也正常工作
   var LOG_API = 'https://jsonblob.com/api/jsonBlob/019fa12d-26c2-75bf-8b24-052c78eb0112';
-  var SESSION_KEY = 'cloud_visitor_session';
+  var SESSION_KEY = 'cloud_visitor_session_v2';
   var STORAGE_KEY = 'yes_click_count_2026';
-  var LOGGED_VISIT_KEY = 'cloud_visit_logged_' + new Date().toISOString().slice(0,10);
+  var SYNC_KEY = 'cloud_pending_sync';
+
+  // ==== 安全 localStorage 封装 ====
+  function safeGet(k) { try { return localStorage.getItem(k); } catch(e) { return null; } }
+  function safeSet(k, v) { try { localStorage.setItem(k, v); } catch(e) {} }
+  function safeRemove(k) { try { localStorage.removeItem(k); } catch(e) {} }
 
   // Session ID
-  var sessionId = localStorage.getItem(SESSION_KEY);
+  var sessionId = safeGet(SESSION_KEY);
   if (!sessionId) {
     sessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    localStorage.setItem(SESSION_KEY, sessionId);
+    safeSet(SESSION_KEY, sessionId);
   }
 
-  // Visitor info cache
+  // ==== 安全的 AJAX（fetch + XHR 降级）====
+  function safeFetch(url, opts, cb) {
+    opts = opts || {};
+    if (typeof fetch === 'function') {
+      fetch(url, opts)
+        .then(function(r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.json();
+        })
+        .then(function(d) { cb(null, d); })
+        .catch(function(e) { cb(e); });
+    } else {
+      // XHR 降级（兼容微信 WebView 等旧环境）
+      try {
+        var xhr = new XMLHttpRequest();
+        xhr.open(opts.method || 'GET', url, true);
+        if (opts.headers) {
+          Object.keys(opts.headers).forEach(function(k) { xhr.setRequestHeader(k, opts.headers[k]); });
+        }
+        xhr.onload = function() {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try { cb(null, JSON.parse(xhr.responseText)); } catch(e) { cb(e); }
+          } else { cb(new Error('XHR ' + xhr.status)); }
+        };
+        xhr.onerror = function() { cb(new Error('XHR error')); };
+        xhr.ontimeout = function() { cb(new Error('XHR timeout')); };
+        xhr.timeout = 8000;
+        xhr.send(opts.body || null);
+      } catch(e) { cb(e); }
+    }
+  }
+
+  // ==== 访问者信息 ====
   var visitorInfo = null;
+  var visitorFetching = false;
+  var visitorQueue = [];
 
   function getVisitorInfo(cb) {
     if (visitorInfo) return cb(visitorInfo);
-    fetch('https://api.ipify.org?format=json')
-      .then(function(r){ return r.json(); })
-      .then(function(d){
-        var ip = d.ip;
-        fetch('https://ipapi.co/' + ip + '/json/')
-          .then(function(r){ return r.json(); })
-          .then(function(loc){
-            visitorInfo = {
-              ip: ip,
-              city: loc.city || '未知',
-              region: loc.region || '未知',
-              country: loc.country_name || '未知',
-              org: loc.org || ''
-            };
-            cb(visitorInfo);
-          })
-          .catch(function(){
-            visitorInfo = { ip: ip, city: '未知', region: '未知', country: '未知', org: '' };
-            cb(visitorInfo);
-          });
-      })
-      .catch(function(){
-        visitorInfo = { ip: '未知', city: '未知', region: '未知', country: '未知', org: '' };
-        cb(visitorInfo);
+    visitorQueue.push(cb);
+    if (visitorFetching) return;
+    visitorFetching = true;
+
+    safeFetch('https://api.ipify.org?format=json', {}, function(err, ipData) {
+      var ip = (ipData && ipData.ip) ? ipData.ip : '未知';
+      if (!ipData || ip === '未知') {
+        doneVisitor({ ip: '未知', city: '未知', region: '未知', country: '未知' });
+        return;
+      }
+      safeFetch('https://ipapi.co/' + encodeURIComponent(ip) + '/json/', {}, function(err2, loc) {
+        doneVisitor({
+          ip: ip,
+          city: (loc && loc.city) || '未知',
+          region: (loc && loc.region) || '未知',
+          country: (loc && loc.country_name) || '未知'
+        });
       });
+    });
+
+    function doneVisitor(info) {
+      visitorInfo = info;
+      visitorFetching = false;
+      var q = visitorQueue.slice();
+      visitorQueue = [];
+      q.forEach(function(fn) { fn(info); });
+    }
   }
 
+  // ==== 数据写入 jsonblob ====
   function appendLog(entry, retries) {
     retries = retries || 0;
-    if (retries > 3) return;
-    fetch(LOG_API, { cache: 'no-store' })
-      .then(function(r){ return r.json(); })
-      .then(function(content){
-        content.lastLogId = (content.lastLogId || 0) + 1;
-        entry.id = content.lastLogId;
-        entry.sessionId = sessionId;
-        if (entry.type === 'visit') content.visits.push(entry);
-        else content.yesClicks.push(entry);
-        return fetch(LOG_API, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(content)
-        });
-      })
-      .catch(function(e){
-        if (retries < 3) setTimeout(function(){ appendLog(entry, retries+1); }, 500 * (retries+1));
+    if (retries > 2) {
+      // 失败后暂存到 localStorage，下次成功时一并提交
+      queuePending(entry);
+      updateSyncDot('pending');
+      return;
+    }
+    safeFetch(LOG_API, { cache: 'no-store' }, function(err, content) {
+      if (err) {
+        setTimeout(function() { appendLog(entry, retries + 1); }, 800 * (retries + 1));
+        return;
+      }
+      if (!content || typeof content.lastLogId === 'undefined') {
+        queuePending(entry);
+        updateSyncDot('pending');
+        return;
+      }
+      content.lastLogId = (content.lastLogId || 0) + 1;
+      entry.id = content.lastLogId;
+      entry.sessionId = sessionId;
+      if (entry.type === 'visit') {
+        if (!content.visits) content.visits = [];
+        content.visits.push(entry);
+      } else {
+        if (!content.yesClicks) content.yesClicks = [];
+        content.yesClicks.push(entry);
+      }
+      safeFetch(LOG_API, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(content) }, function(err2) {
+        if (err2) {
+          setTimeout(function() { appendLog(entry, retries + 1); }, 800 * (retries + 1));
+        } else {
+          updateSyncDot('ok');
+          // 如果有积压的待同步数据，一并提交
+          flushPending();
+        }
       });
+    });
+  }
+
+  // ==== 离线暂存 ====
+  function queuePending(entry) {
+    try {
+      var pending = JSON.parse(safeGet(SYNC_KEY) || '[]');
+      pending.push(entry);
+      safeSet(SYNC_KEY, JSON.stringify(pending.slice(-50)));
+    } catch(e) {}
+  }
+
+  function flushPending() {
+    try {
+      var pending = JSON.parse(safeGet(SYNC_KEY) || '[]');
+      if (pending.length === 0) return;
+      safeRemove(SYNC_KEY);
+      pending.forEach(function(e) { appendLog(e, 0); });
+    } catch(e) {}
+  }
+
+  // ==== 同步状态指示点 ====
+  function updateSyncDot(status) {
+    var dot = document.getElementById('sync-dot');
+    if (!dot) return;
+    dot.style.display = 'inline-block';
+    dot.style.background = (status === 'ok') ? '#4f4' : (status === 'pending') ? '#fa0' : '#f44';
+    if (status === 'ok') {
+      setTimeout(function() { if (dot) dot.style.display = 'none'; }, 3000);
+    }
   }
 
   function logVisit() {
-    if (localStorage.getItem(LOGGED_VISIT_KEY)) return;
-    getVisitorInfo(function(info){
-      var entry = {
+    var today = new Date().toISOString().slice(0, 10);
+    var visitKey = 'cloud_visit_' + today;
+    if (safeGet(visitKey)) return;
+    getVisitorInfo(function(info) {
+      appendLog({
         type: 'visit',
         ip: info.ip,
         city: info.city,
         region: info.region,
         country: info.country,
-        org: info.org,
         time: new Date().toISOString(),
-        userAgent: navigator.userAgent.substring(0, 200)
-      };
-      appendLog(entry);
-      localStorage.setItem(LOGGED_VISIT_KEY, '1');
+        userAgent: (navigator.userAgent || '').substring(0, 200)
+      }, 0);
+      safeSet(visitKey, '1');
     });
   }
 
   function logYesClick(cumulativeCount) {
-    getVisitorInfo(function(info){
-      var entry = {
+    getVisitorInfo(function(info) {
+      appendLog({
         type: 'yesClick',
         ip: info.ip,
         city: info.city,
@@ -1191,43 +1283,82 @@ body {
         country: info.country,
         time: new Date().toISOString(),
         cumulativeCount: cumulativeCount
-      };
-      appendLog(entry);
+      }, 0);
     });
   }
 
-  // YES button logic
-  var count = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
-  var display = document.getElementById('yes-count');
-  var btn = document.getElementById('yes-btn');
+  // ==== YES 按钮（DOMContentLoaded 后绑定）====
+  function initYESButton() {
+    var count = parseInt(safeGet(STORAGE_KEY) || '0', 10);
+    var display = document.getElementById('yes-count');
+    var btn = document.getElementById('yes-btn');
 
-  function updateDisplay() {
-    if (count > 0) { display.style.display = ''; display.textContent = '\u00d7' + count; }
-  }
-  updateDisplay();
+    if (!btn || !display) return;
 
-  window.handleYesClick = function() {
-    count++;
-    localStorage.setItem(STORAGE_KEY, count);
-    updateDisplay();
-    logYesClick(count);
-
-    if (count === 99) {
-      var overlay = document.createElement('div');
-      overlay.className = 'easter-overlay';
-      overlay.innerHTML = '<div class="easter-box"><h2>\ud83c\udf89 \u5f69\u86cb</h2><p>\u4e91\u5b9d\uff0c\u606d\u559c\u4f60\u89e6\u53d1\u4e86\u5f69\u86cb\uff0c<br>\u4e0d\u7ba1\u4f60\u662f\u4e3a\u4e86\u8fd9\u4e2a\u5f69\u86cb\u4e5f\u597d\uff0c\u8fd8\u662f\u771f\u7684\u613f\u610f\uff0c<br>\u6b64\u523b\u4f60\u53ea\u5c5e\u4e8e\u6211\uff0c\u6211\u7231\u4f60\u3002</p><button class="easter-close" onclick="this.parentElement.parentElement.remove()">\u6536\u5230 \u2764\ufe0f</button></div>';
-      document.body.appendChild(overlay);
-    } else if (count < 99) {
-      btn.textContent = 'YES (' + (99 - count) + ')';
-    } else {
-      btn.textContent = 'YES \u2764\ufe0f';
+    function updateDisplay() {
+      if (count > 0) {
+        display.style.display = '';
+        display.textContent = '\u00d7' + count;
+      }
     }
-    btn.style.transform = 'scale(1.05)';
-    setTimeout(function(){ btn.style.transform = ''; }, 120);
-  };
+    updateDisplay();
 
-  // Log visit on page load
-  setTimeout(logVisit, 800);
+    // 添加同步指示点
+    if (!document.getElementById('sync-dot')) {
+      var dot = document.createElement('span');
+      dot.id = 'sync-dot';
+      dot.style.cssText = 'display:none;width:8px;height:8px;border-radius:50%;margin-left:8px;vertical-align:middle;';
+      display.parentNode.appendChild(dot);
+    }
+
+    function handleClick() {
+      count++;
+      safeSet(STORAGE_KEY, count);
+      updateDisplay();
+
+      // 网络请求异步执行，不阻塞 UI
+      logYesClick(count);
+
+      if (count === 99) {
+        var overlay = document.createElement('div');
+        overlay.className = 'easter-overlay';
+        overlay.innerHTML = '<div class="easter-box"><h2>\ud83c\udf89 \u5f69\u86cb</h2><p>\u4e91\u5b9d\uff0c\u606d\u559c\u4f60\u89e6\u53d1\u4e86\u5f69\u86cb\uff0c<br>\u4e0d\u7ba1\u4f60\u662f\u4e3a\u4e86\u8fd9\u4e2a\u5f69\u86cb\u4e5f\u597d\uff0c\u8fd8\u662f\u771f\u7684\u613f\u610f\uff0c<br>\u6b64\u523b\u4f60\u53ea\u5c5e\u4e8e\u6211\uff0c\u6211\u7231\u4f60\u3002</p><button class="easter-close" onclick="this.parentElement.parentElement.remove()">\u6536\u5230 \u2764\ufe0f</button></div>';
+        document.body.appendChild(overlay);
+      } else if (count < 99) {
+        btn.textContent = 'YES (' + (99 - count) + ')';
+      } else {
+        btn.textContent = 'YES \u2764\ufe0f';
+      }
+      btn.style.transform = 'scale(1.05)';
+      setTimeout(function() { btn.style.transform = ''; }, 120);
+    }
+
+    // 移除旧 onclick，用 addEventListener 绑定（更可靠）
+    btn.removeAttribute('onclick');
+    btn.addEventListener('click', handleClick);
+    btn.addEventListener('touchend', function(e) { e.preventDefault(); handleClick(); });
+
+    // 兼容旧代码
+    window.handleYesClick = handleClick;
+  }
+
+  // ==== DOM 加载后初始化 ====
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      initYESButton();
+      setTimeout(logVisit, 1200);
+    });
+  } else {
+    initYESButton();
+    setTimeout(logVisit, 1200);
+  }
+
+  // ==== 全局错误兜底 ====
+  window.addEventListener('error', function(e) {
+    // 静默吞掉，防止一个脚本错误导致整个页面交互失效
+    if (e.target && e.target.tagName === 'IMG') return;
+    updateSyncDot('err');
+  });
 })();
 </script>
 
