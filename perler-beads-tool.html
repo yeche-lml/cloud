@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拼豆图纸工具</title>
+<style>
+:root {
+  --bg: #f0f0f0;
+  --panel-bg: #f8f8f8;
+  --border: #d0d0d0;
+  --grid-border: #ccc;
+  --cell-border: #e0e0e0;
+  --text: #333;
+  --text-light: #666;
+  --cell-size: 24px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Header */
+.header {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.header h1 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: #888;
+}
+
+/* Main Layout */
+.main-layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 220px;
+  background: #fff;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+.sidebar-section {
+  padding: 10px 12px;
+  border-bottom: 1px solid #eee;
+}
+.sidebar-section h3 {
+  font-size: 12px;
+  font-weight: 600;
+  color: #888;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Current color display */
+.current-color-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.color-preview {
+  width: 40px; height: 40px;
+  border-radius: 4px;
+  border: 2px solid #ccc;
+  background-image: linear-gradient(45deg, #e0e0e0 25%, transparent 25%, transparent 75%, #e0e0e0 75%, #e0e0e0),
+                    linear-gradient(45deg, #e0e0e0 25%, transparent 25%, transparent 75%, #e0e0e0 75%, #e0e0e0);
+  background-size: 10px 10px;
+  background-position: 0 0, 5px 5px;
+}
+.color-preview-inner {
+  width: 100%; height: 100%;
+  border-radius: 2px;
+}
+.color-code-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+.eraser-indicator {
+  font-size: 13px;
+  color: #f44336;
+}
+
+/* Color grid palette */
+.color-palette {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 3px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.color-swatch {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 3px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  font-weight: 600;
+  transition: border-color 0.15s;
+}
+.color-swatch:hover { border-color: #999; }
+.color-swatch.selected { border-color: #333; box-shadow: 0 0 0 1px #fff inset; }
+
+/* Buttons */
+.btn {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 5px;
+  font-size: 13px;
+  cursor: pointer;
+  text-align: center;
+  margin-bottom: 6px;
+  transition: background 0.15s, border-color 0.15s;
+  font-family: inherit;
+}
+.btn:hover { background: #f5f5f5; border-color: #bbb; }
+.btn-primary { background: #333; color: #fff; border-color: #333; }
+.btn-primary:hover { background: #555; border-color: #555; }
+.btn-danger { background: #fff; color: #e53935; border-color: #e53935; }
+.btn-danger:hover { background: #ffebee; }
+.btn-small {
+  padding: 5px 10px;
+  font-size: 12px;
+  margin-bottom: 3px;
+}
+.btn-group {
+  display: flex;
+  gap: 4px;
+}
+.btn-group .btn { flex: 1; }
+
+/* Canvas area */
+.canvas-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  padding: 20px;
+}
+.canvas-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.column-numbers-top, .column-numbers-bottom {
+  display: flex;
+  padding-left: 30px; /* space for row numbers */
+}
+.column-numbers-top span, .column-numbers-bottom span {
+  width: var(--cell-size);
+  text-align: center;
+  font-size: 10px;
+  color: #999;
+  flex-shrink: 0;
+}
+.grid-with-rows {
+  display: flex;
+}
+.row-numbers {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+.row-numbers span {
+  height: var(--cell-size);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  font-size: 10px;
+  color: #999;
+  padding-right: 4px;
+  width: 26px;
+  flex-shrink: 0;
+}
+.canvas-grid {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #aaa;
+}
+.grid-row {
+  display: flex;
+}
+.grid-cell {
+  width: var(--cell-size);
+  height: var(--cell-size);
+  border: 1px solid var(--cell-border);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1;
+  transition: background 0.1s;
+  position: relative;
+  flex-shrink: 0;
+}
+.grid-cell.empty {
+  background-image: linear-gradient(45deg, #e6e6e6 25%, transparent 25%, transparent 75%, #e6e6e6 75%, #e6e6e6),
+                    linear-gradient(45deg, #e6e6e6 25%, transparent 25%, transparent 75%, #e6e6e6 75%, #e6e6e6);
+  background-size: 8px 8px;
+  background-position: 0 0, 4px 4px;
+  background-color: #fff;
+}
+.grid-cell.filled {
+  border-color: rgba(0,0,0,0.15);
+}
+
+/* Stats Bar */
+.stats-bar {
+  background: #fff;
+  border-top: 1px solid var(--border);
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  overflow-x: auto;
+  flex-shrink: 0;
+  min-height: 56px;
+  flex-wrap: wrap;
+}
+.stats-item {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: #f8f8f8;
+  border: 1px solid #eee;
+  font-size: 11px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.stats-item:hover { background: #efefef; }
+.stats-color {
+  width: 16px; height: 16px;
+  border-radius: 3px;
+  border: 1px solid rgba(0,0,0,0.1);
+  flex-shrink: 0;
+}
+.stats-count { color: #888; font-weight: 500; }
+.stats-empty {
+  font-size: 12px;
+  color: #bbb;
+  padding: 4px 8px;
+}
+
+/* Footer */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 4px 16px;
+  background: #fff;
+  border-top: 1px solid #eee;
+  font-size: 11px;
+  color: #aaa;
+  flex-shrink: 0;
+}
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.footer-star {
+  color: #f5a623;
+  font-size: 14px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+/* Responsive cell size */
+@media (max-width: 1200px) {
+  :root { --cell-size: 18px; }
+  .grid-cell { font-size: 6px; }
+}
+@media (max-width: 900px) {
+  :root { --cell-size: 14px; }
+  .grid-cell { font-size: 5px; }
+  .sidebar { width: 170px; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <h1>拼豆图纸工具</h1>
+  <div class="header-right">
+    <span id="canvasSizeLabel">40×40</span>
+    <span id="filledCount">0 格已填充</span>
+  </div>
+</header>
+
+<div class="main-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-section">
+      <h3>当前颜色</h3>
+      <div class="current-color-display">
+        <div class="color-preview" id="currentColorPreview">
+          <div class="color-preview-inner" id="currentColorInner"></div>
+        </div>
+        <span class="color-code-label" id="currentColorLabel">无</span>
+      </div>
+      <div id="eraserIndicator" class="eraser-indicator" style="display:none;">正在擦除</div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>工具</h3>
+      <button class="btn" id="btnSelectEraser" style="background:#fff5f5;border-color:#f44336;color:#f44336;">🧹 橡皮擦</button>
+      <button class="btn" id="btnClear">清空画布</button>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>画布尺寸</h3>
+      <div class="btn-group">
+        <button class="btn btn-small" data-size="29">29</button>
+        <button class="btn btn-small btn-primary" data-size="40">40</button>
+        <button class="btn btn-small" data-size="50">50</button>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>图片导入</h3>
+      <button class="btn btn-primary" id="btnImportImage">📷 导入图片</button>
+      <input type="file" id="imageInput" accept="image/*" style="display:none;">
+    </div>
+
+    <div class="sidebar-section">
+      <h3>导出</h3>
+      <button class="btn" id="btnExport">📥 导出PNG图纸</button>
+    </div>
+
+    <!-- Color palette by series -->
+    <div id="colorPaletteContainer"></div>
+  </aside>
+
+  <!-- Canvas -->
+  <div class="canvas-area" id="canvasArea">
+    <div class="canvas-wrapper" id="canvasWrapper"></div>
+  </div>
+</div>
+
+<!-- Stats bar -->
+<div class="stats-bar" id="statsBar">
+  <span class="stats-empty">画布为空，请选择颜色开始绘制</span>
+</div>
+
+<footer class="footer">
+  <div class="footer-brand">
+    <span class="footer-star">★</span>
+    <span>小目拼豆</span>
+  </div>
+</footer>
+
+<script>
+// ============ MARD 221 Color Data ============
+const MARD_COLORS = {
+  A: { name:'黄/橙', colors:[
+    ['A1','#FAF4C8'],['A2','#FFFFD5'],['A3','#FEFF8B'],['A4','#FBED56'],['A5','#F4D738'],
+    ['A6','#FEAC4C'],['A7','#FE8B4C'],['A8','#FFDA45'],['A9','#FF995B'],['A10','#F77C31'],
+    ['A11','#FFDD99'],['A12','#FE9F72'],['A13','#FFC365'],['A14','#FD543D'],['A15','#FFF365'],
+    ['A16','#FFFF9F'],['A17','#FFE36E'],['A18','#FEBE7D'],['A19','#FD7C72'],['A20','#FFD568'],
+    ['A21','#FFE395'],['A22','#F4F57D'],['A23','#E6C9B7'],['A24','#F7F8A2'],['A25','#FFD67D'],
+    ['A26','#FFC830']
+  ]},
+  B: { name:'绿', colors:[
+    ['B1','#E6EE31'],['B2','#63F347'],['B3','#9EF780'],['B4','#5DE035'],['B5','#35E352'],
+    ['B6','#65E2A6'],['B7','#3DAF80'],['B8','#1C9C4F'],['B9','#27523A'],['B10','#95D3C2'],
+    ['B11','#5D722A'],['B12','#166F41'],['B13','#CAEB7B'],['B14','#ADE946'],['B15','#2E5132'],
+    ['B16','#C5ED9C'],['B17','#9BB13A'],['B18','#E6EE49'],['B19','#24B88C'],['B20','#C2F0CC'],
+    ['B21','#156A6B'],['B22','#0B3C43'],['B23','#303A21'],['B24','#EEFCA5'],['B25','#4E846D'],
+    ['B26','#8D7A35'],['B27','#CCE1AF'],['B28','#9EE5B9'],['B29','#C5E254'],['B30','#E2FCB1'],
+    ['B31','#B0E792'],['B32','#9CAB5A']
+  ]},
+  C: { name:'蓝/青', colors:[
+    ['C1','#E8FFE7'],['C2','#A9F9FC'],['C3','#A0E2FB'],['C4','#41CCFF'],['C5','#01ACEB'],
+    ['C6','#50AAF0'],['C7','#3677D2'],['C8','#0F54C0'],['C9','#324BCA'],['C10','#3EBCE2'],
+    ['C11','#28DDDE'],['C12','#1C334D'],['C13','#CDE8FF'],['C14','#D5FDFF'],['C15','#22C4C6'],
+    ['C16','#1557A8'],['C17','#04D1F6'],['C18','#1D3344'],['C19','#1887A2'],['C20','#176DAF'],
+    ['C21','#BEDDFF'],['C22','#67B4BE'],['C23','#C8E2FF'],['C24','#7CC4FF'],['C25','#A9E5E5'],
+    ['C26','#3CAED8'],['C27','#D3DFFA'],['C28','#BBCFED'],['C29','#34488E']
+  ]},
+  D: { name:'紫/蓝紫', colors:[
+    ['D1','#AEB4F2'],['D2','#858EDD'],['D3','#2F54AF'],['D4','#182A84'],['D5','#B843C5'],
+    ['D6','#AC7BDE'],['D7','#8854B3'],['D8','#E2D3FF'],['D9','#D5B9F8'],['D10','#361851'],
+    ['D11','#B9BAE1'],['D12','#DE9AD4'],['D13','#B90095'],['D14','#8B279B'],['D15','#2F1F90'],
+    ['D16','#E3E1EE'],['D17','#C4D4F6'],['D18','#A45EC7'],['D19','#D8C3D7'],['D20','#9C32B2'],
+    ['D21','#9A009B'],['D22','#333A95'],['D23','#EBDAFC'],['D24','#7786E5'],['D25','#494FC7'],
+    ['D26','#DFC2F8']
+  ]},
+  E: { name:'粉/玫', colors:[
+    ['E1','#FDD3CC'],['E2','#FEC0DF'],['E3','#FFB7E7'],['E4','#E8649E'],['E5','#F551A2'],
+    ['E6','#F13D74'],['E7','#C63478'],['E8','#FFDBE9'],['E9','#E970CC'],['E10','#D33793'],
+    ['E11','#FCDDD2'],['E12','#F78FC3'],['E13','#B5006D'],['E14','#FFD1BA'],['E15','#F8C7C9'],
+    ['E16','#FFF3EB'],['E17','#FFE2EA'],['E18','#FFC7DB'],['E19','#FEBAD5'],['E20','#D8C7D1'],
+    ['E21','#BD9DA1'],['E22','#B785A1'],['E23','#937A8D'],['E24','#E1BCE8']
+  ]},
+  F: { name:'红', colors:[
+    ['F1','#FD957B'],['F2','#FC3D46'],['F3','#F74941'],['F4','#FC283C'],['F5','#E7002F'],
+    ['F6','#943630'],['F7','#971937'],['F8','#BC0028'],['F9','#E2677A'],['F10','#8A4526'],
+    ['F11','#5A2121'],['F12','#FD4E6A'],['F13','#F35744'],['F14','#FFA9AD'],['F15','#D30022'],
+    ['F16','#FEC2A6'],['F17','#E69C79'],['F18','#D37C46'],['F19','#C1444A'],['F20','#CD9391'],
+    ['F21','#F7B4C6'],['F22','#FDC0D0'],['F23','#F67E66'],['F24','#E698AA'],['F25','#E54B4F']
+  ]},
+  G: { name:'棕', colors:[
+    ['G1','#FFE2CE'],['G2','#FFC4AA'],['G3','#F4C3A5'],['G4','#E1B383'],['G5','#EDB045'],
+    ['G6','#E99C17'],['G7','#9D5B3E'],['G8','#753832'],['G9','#E6B483'],['G10','#D98C39'],
+    ['G11','#E0C593'],['G12','#FFC890'],['G13','#B7714A'],['G14','#8D614C'],['G15','#FCF9E0'],
+    ['G16','#F2D9BA'],['G17','#78524B'],['G18','#FFE4CC'],['G19','#E07935'],['G20','#A94023'],
+    ['G21','#B88558']
+  ]},
+  H: { name:'中性/黑白灰', colors:[
+    ['H1','#FDFBFF'],['H2','#FEFFFF'],['H3','#B6B1BA'],['H4','#89858C'],['H5','#48464E'],
+    ['H6','#2F2B2F'],['H7','#000000'],['H8','#E7D6DB'],['H9','#EDEDED'],['H10','#EEE9EA'],
+    ['H11','#CECDD5'],['H12','#FFF5ED'],['H13','#F5ECD2'],['H14','#CFD7D3'],['H15','#98A6A8'],
+    ['H16','#1D1414'],['H17','#F1EDED'],['H18','#FFFDF0'],['H19','#F6EFE2'],['H20','#949FA3'],
+    ['H21','#FFFBE1'],['H22','#CACAD4'],['H23','#9A9D94']
+  ]}
+};
+
+// Build flat lookup map
+const COLOR_MAP = {};
+for (const [series, data] of Object.entries(MARD_COLORS)) {
+  for (const [code, hex] of data.colors) {
+    COLOR_MAP[code] = { code, hex, series, rgb: hexToRgb(hex) };
+  }
+}
+
+function hexToRgb(hex) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : { r:0,g:0,b:0 };
+}
+
+function getTextColor(bgHex) {
+  const {r,g,b} = hexToRgb(bgHex);
+  const luminance = 0.299*r + 0.587*g + 0.114*b;
+  return luminance > 150 ? '#000' : '#fff';
+}
+
+// ============ State ============
+let canvasSize = 40;
+let grid = []; // grid[row][col] = colorCode or null
+let currentColor = null;
+let isEraser = false;
+let mouseDown = false;
+
+// ============ DOM Refs ============
+const canvasWrapper = document.getElementById('canvasWrapper');
+const statsBar = document.getElementById('statsBar');
+const currentColorLabel = document.getElementById('currentColorLabel');
+const currentColorInner = document.getElementById('currentColorInner');
+const currentColorPreview = document.getElementById('currentColorPreview');
+const eraserIndicator = document.getElementById('eraserIndicator');
+const canvasSizeLabel = document.getElementById('canvasSizeLabel');
+const filledCountEl = document.getElementById('filledCount');
+const colorPaletteContainer = document.getElementById('colorPaletteContainer');
+
+// ============ Initialize ============
+function initGrid() {
+  grid = Array.from({length: canvasSize}, () => Array(canvasSize).fill(null));
+}
+
+function renderAll() {
+  renderCanvas();
+  renderStats();
+  renderPalette();
+  updateCurrentColorDisplay();
+  canvasSizeLabel.textContent = `${canvasSize}×${canvasSize}`;
+}
+
+function renderCanvas() {
+  const cs = getComputedStyle(document.documentElement).getPropertyValue('--cell-size').trim();
+  const cellSizePx = parseInt(cs);
+
+  let html = '';
+
+  // Top column numbers
+  html += '<div class="column-numbers-top">';
+  for (let c = 1; c <= canvasSize; c++) html += `<span>${c}</span>`;
+  html += '</div>';
+
+  // Grid with row numbers
+  html += '<div class="grid-with-rows">';
+  html += '<div class="row-numbers">';
+  for (let r = 1; r <= canvasSize; r++) html += `<span>${r}</span>`;
+  html += '</div>';
+
+  html += '<div class="canvas-grid">';
+  for (let r = 0; r < canvasSize; r++) {
+    html += '<div class="grid-row">';
+    for (let c = 0; c < canvasSize; c++) {
+      const code = grid[r][c];
+      if (code) {
+        const hex = COLOR_MAP[code] ? COLOR_MAP[code].hex : '#ccc';
+        const txtColor = getTextColor(hex);
+        html += `<div class="grid-cell filled" data-row="${r}" data-col="${c}" style="background:${hex};color:${txtColor}">${code}</div>`;
+      } else {
+        html += `<div class="grid-cell empty" data-row="${r}" data-col="${c}"></div>`;
+      }
+    }
+    html += '</div>';
+  }
+  html += '</div></div>';
+
+  // Bottom column numbers
+  html += '<div class="column-numbers-bottom">';
+  for (let c = 1; c <= canvasSize; c++) html += `<span>${c}</span>`;
+  html += '</div>';
+
+  canvasWrapper.innerHTML = html;
+
+  // Attach cell events
+  const cells = canvasWrapper.querySelectorAll('.grid-cell');
+  cells.forEach(cell => {
+    cell.addEventListener('mousedown', onCellMouseDown);
+    cell.addEventListener('mouseenter', onCellMouseEnter);
+  });
+}
+
+document.addEventListener('mouseup', () => { mouseDown = false; });
+
+function onCellMouseDown(e) {
+  mouseDown = true;
+  const row = parseInt(e.currentTarget.dataset.row);
+  const col = parseInt(e.currentTarget.dataset.col);
+  paintCell(row, col);
+}
+
+function onCellMouseEnter(e) {
+  if (!mouseDown) return;
+  const row = parseInt(e.currentTarget.dataset.row);
+  const col = parseInt(e.currentTarget.dataset.col);
+  paintCell(row, col);
+}
+
+function paintCell(row, col) {
+  if (isEraser) {
+    grid[row][col] = null;
+  } else if (currentColor) {
+    grid[row][col] = currentColor;
+  }
+  // re-render just this cell for performance
+  updateCell(row, col);
+  renderStatsQuick();
+}
+
+function updateCell(row, col) {
+  const cell = canvasWrapper.querySelector(`.grid-cell[data-row="${row}"][data-col="${col}"]`);
+  if (!cell) return;
+  const code = grid[row][col];
+  cell.className = 'grid-cell';
+  if (code) {
+    const hex = COLOR_MAP[code] ? COLOR_MAP[code].hex : '#ccc';
+    cell.classList.add('filled');
+    cell.style.background = hex;
+    cell.style.color = getTextColor(hex);
+    cell.textContent = code;
+  } else {
+    cell.classList.add('empty');
+    cell.style.background = '';
+    cell.style.color = '';
+    cell.textContent = '';
+  }
+}
+
+function renderStatsQuick() {
+  // Update stats without full rebuild of canvas
+  const stats = computeStats();
+  renderStatsBarFromStats(stats);
+  filledCountEl.textContent = `${stats.totalFilled} 格已填充`;
+}
+
+function computeStats() {
+  const countMap = {};
+  for (let r = 0; r < canvasSize; r++) {
+    for (let c = 0; c < canvasSize; c++) {
+      const code = grid[r][c];
+      if (code) countMap[code] = (countMap[code] || 0) + 1;
+    }
+  }
+  const entries = Object.entries(countMap).sort((a,b) => b[1] - a[1]);
+  const totalFilled = entries.reduce((sum, [_, n]) => sum + n, 0);
+  return { entries, totalFilled };
+}
+
+function renderStats() {
+  const stats = computeStats();
+  renderStatsBarFromStats(stats);
+  filledCountEl.textContent = `${stats.totalFilled} 格已填充`;
+}
+
+function renderStatsBarFromStats(stats) {
+  if (stats.entries.length === 0) {
+    statsBar.innerHTML = '<span class="stats-empty">画布为空，请选择颜色开始绘制</span>';
+    return;
+  }
+  statsBar.innerHTML = stats.entries.map(([code, count]) => {
+    const info = COLOR_MAP[code];
+    const hex = info ? info.hex : '#ccc';
+    return `<div class="stats-item" data-code="${code}" title="点击选择 ${code}">
+      <div class="stats-color" style="background:${hex}"></div>
+      <span>${code}</span>
+      <span class="stats-count">× ${count}</span>
+    </div>`;
+  }).join('');
+
+  // Click on stats item selects that color
+  statsBar.querySelectorAll('.stats-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const code = item.dataset.code;
+      selectColor(code);
+    });
+  });
+}
+
+function selectColor(code) {
+  isEraser = false;
+  currentColor = code;
+  updateCurrentColorDisplay();
+  renderPaletteSelection();
+}
+
+function updateCurrentColorDisplay() {
+  if (isEraser) {
+    currentColorInner.style.background = '';
+    currentColorLabel.textContent = '橡皮擦';
+    eraserIndicator.style.display = 'block';
+  } else if (currentColor && COLOR_MAP[currentColor]) {
+    currentColorInner.style.background = COLOR_MAP[currentColor].hex;
+    currentColorLabel.textContent = currentColor;
+    eraserIndicator.style.display = 'none';
+  } else {
+    currentColorInner.style.background = '';
+    currentColorLabel.textContent = '无';
+    eraserIndicator.style.display = 'none';
+  }
+}
+
+// ============ Color Palette ============
+function renderPalette() {
+  let html = '';
+  for (const [series, data] of Object.entries(MARD_COLORS)) {
+    html += `<div class="sidebar-section">`;
+    html += `<h3>${series}系列 · ${data.name} (${data.colors.length}色)</h3>`;
+    html += `<div class="color-palette" data-series="${series}">`;
+    for (const [code, hex] of data.colors) {
+      const txtColor = getTextColor(hex);
+      const selectedClass = (currentColor === code && !isEraser) ? ' selected' : '';
+      html += `<div class="color-swatch${selectedClass}" data-code="${code}" style="background:${hex};color:${txtColor}" title="${code}">${code}</div>`;
+    }
+    html += `</div></div>`;
+  }
+  colorPaletteContainer.innerHTML = html;
+
+  // Attach click events
+  colorPaletteContainer.querySelectorAll('.color-swatch').forEach(swatch => {
+    swatch.addEventListener('click', () => {
+      selectColor(swatch.dataset.code);
+    });
+  });
+}
+
+function renderPaletteSelection() {
+  colorPaletteContainer.querySelectorAll('.color-swatch').forEach(swatch => {
+    if (swatch.dataset.code === currentColor && !isEraser) {
+      swatch.classList.add('selected');
+    } else {
+      swatch.classList.remove('selected');
+    }
+  });
+}
+
+// ============ Buttons ============
+document.getElementById('btnSelectEraser').addEventListener('click', () => {
+  isEraser = true;
+  currentColor = null;
+  updateCurrentColorDisplay();
+  renderPaletteSelection();
+});
+
+document.getElementById('btnClear').addEventListener('click', () => {
+  if (confirm('确定要清空整个画布吗？此操作不可撤销。')) {
+    initGrid();
+    renderAll();
+  }
+});
+
+document.querySelectorAll('[data-size]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const newSize = parseInt(btn.dataset.size);
+    if (newSize === canvasSize) return;
+    if (confirm(`切换画布尺寸为 ${newSize}×${newSize} 将清空当前画布，确定吗？`)) {
+      canvasSize = newSize;
+      initGrid();
+      renderAll();
+      // Update size buttons
+      document.querySelectorAll('[data-size]').forEach(b => b.classList.remove('btn-primary'));
+      btn.classList.add('btn-primary');
+    }
+  });
+});
+
+// ============ Import Image ============
+document.getElementById('btnImportImage').addEventListener('click', () => {
+  document.getElementById('imageInput').click();
+});
+
+document.getElementById('imageInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  try {
+    const img = await loadImage(file);
+    const pattern = convertImageToPattern(img, canvasSize);
+    
+    // Match colors
+    const allColorCodes = Object.keys(COLOR_MAP);
+    for (let r = 0; r < canvasSize; r++) {
+      for (let c = 0; c < canvasSize; c++) {
+        const pixelColor = pattern[r][c];
+        if (pixelColor) {
+          grid[r][c] = findClosestColor(pixelColor, allColorCodes);
+        }
+      }
+    }
+    
+    renderAll();
+  } catch (err) {
+    alert('图片导入失败: ' + err.message);
+  }
+  
+  // Reset input
+  e.target.value = '';
+});
+
+function loadImage(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('图片加载失败'));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+function convertImageToPattern(img, size) {
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  
+  // Pixelate using nearest-neighbor
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(img, 0, 0, size, size);
+  
+  const imageData = ctx.getImageData(0, 0, size, size);
+  const pattern = [];
+  for (let r = 0; r < size; r++) {
+    pattern[r] = [];
+    for (let c = 0; c < size; c++) {
+      const idx = (r * size + c) * 4;
+      const red = imageData.data[idx];
+      const green = imageData.data[idx + 1];
+      const blue = imageData.data[idx + 2];
+      const alpha = imageData.data[idx + 3];
+      
+      // Skip transparent pixels
+      if (alpha < 128) {
+        pattern[r][c] = null;
+      } else {
+        pattern[r][c] = { r: red, g: green, b: blue };
+      }
+    }
+  }
+  return pattern;
+}
+
+function findClosestColor(pixelColor, colorCodes) {
+  let bestCode = colorCodes[0];
+  let bestDist = Infinity;
+  
+  for (const code of colorCodes) {
+    const target = COLOR_MAP[code].rgb;
+    const dr = pixelColor.r - target.r;
+    const dg = pixelColor.g - target.g;
+    const db = pixelColor.b - target.b;
+    // Weighted Euclidean distance (human perception weights)
+    const dist = 2*dr*dr + 4*dg*dg + 3*db*db;
+    if (dist < bestDist) {
+      bestDist = dist;
+      bestCode = code;
+    }
+  }
+  return bestCode;
+}
+
+// ============ Export ============
+document.getElementById('btnExport').addEventListener('click', () => {
+  const stats = computeStats();
+  if (stats.totalFilled === 0) {
+    alert('画布为空，请先绘制图案再导出');
+    return;
+  }
+  
+  const cs = getComputedStyle(document.documentElement).getPropertyValue('--cell-size').trim();
+  const cellPx = parseInt(cs);
+  const padding = 40;
+  const headerHeight = 20;
+  const legendHeight = 80;
+  
+  const w = canvasSize * cellPx + padding * 2;
+  const h = canvasSize * cellPx + padding * 2 + headerHeight * 2 + legendHeight;
+  
+  const exportCanvas = document.createElement('canvas');
+  exportCanvas.width = w;
+  exportCanvas.height = h;
+  const ctx = exportCanvas.getContext('2d');
+  
+  // Background white
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, w, h);
+  
+  // Grid offset
+  const gx = padding;
+  const gy = padding + headerHeight;
+  
+  // Column numbers top
+  ctx.fillStyle = '#999';
+  ctx.font = '9px sans-serif';
+  ctx.textAlign = 'center';
+  for (let c = 1; c <= canvasSize; c++) {
+    ctx.fillText(c, gx + (c - 0.5) * cellPx, gy - 6);
+  }
+  
+  // Row numbers
+  ctx.textAlign = 'right';
+  for (let r = 1; r <= canvasSize; r++) {
+    ctx.fillText(r, gx - 4, gy + (r - 0.5) * cellPx + 3);
+  }
+  
+  // Draw cells
+  for (let r = 0; r < canvasSize; r++) {
+    for (let c = 0; c < canvasSize; c++) {
+      const x = gx + c * cellPx;
+      const y = gy + r * cellPx;
+      const code = grid[r][c];
+      
+      if (code && COLOR_MAP[code]) {
+        ctx.fillStyle = COLOR_MAP[code].hex;
+        ctx.fillRect(x, y, cellPx, cellPx);
+        
+        ctx.fillStyle = getTextColor(COLOR_MAP[code].hex);
+        ctx.font = `bold ${Math.max(7, cellPx * 0.35)}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(code, x + cellPx/2, y + cellPx/2);
+      } else {
+        // Checkerboard pattern
+        const isEven = (r + c) % 2 === 0;
+        ctx.fillStyle = isEven ? '#f0f0f0' : '#ffffff';
+        ctx.fillRect(x, y, cellPx, cellPx);
+      }
+      
+      // Cell border
+      ctx.strokeStyle = '#e0e0e0';
+      ctx.lineWidth = 0.5;
+      ctx.strokeRect(x, y, cellPx, cellPx);
+    }
+  }
+  
+  // Grid outer border
+  ctx.strokeStyle = '#aaa';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(gx, gy, canvasSize * cellPx, canvasSize * cellPx);
+  
+  // Bottom column numbers
+  const bottomY = gy + canvasSize * cellPx + 4;
+  ctx.fillStyle = '#999';
+  ctx.textAlign = 'center';
+  for (let c = 1; c <= canvasSize; c++) {
+    ctx.fillText(c, gx + (c - 0.5) * cellPx, bottomY + 10);
+  }
+  
+  // Legend
+  const legendY = bottomY + 20;
+  ctx.fillStyle = '#333';
+  ctx.font = '11px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('颜色统计', gx, legendY);
+  
+  let lx = gx;
+  let ly = legendY + 16;
+  const swatchSize = 14;
+  const statsEntries = stats.entries.slice(0, 60); // max 60 items in legend
+  
+  for (let i = 0; i < statsEntries.length; i++) {
+    const [code, count] = statsEntries[i];
+    const hex = COLOR_MAP[code] ? COLOR_MAP[code].hex : '#ccc';
+    
+    if (lx + 68 > w - padding) {
+      lx = gx;
+      ly += 22;
+    }
+    
+    ctx.fillStyle = hex;
+    ctx.fillRect(lx, ly, swatchSize, swatchSize);
+    ctx.strokeStyle = '#ccc';
+    ctx.lineWidth = 0.5;
+    ctx.strokeRect(lx, ly, swatchSize, swatchSize);
+    
+    ctx.fillStyle = '#333';
+    ctx.font = '9px sans-serif';
+    ctx.fillText(`${code} ×${count}`, lx + swatchSize + 3, ly + 11);
+    
+    lx += 68;
+  }
+  
+  // Brand
+  ctx.fillStyle = '#aaa';
+  ctx.font = '10px sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText('★ 小目拼豆', w - padding, h - 10);
+  
+  // Download
+  exportCanvas.toBlob(blob => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `perler-beads-pattern-${canvasSize}x${canvasSize}.png`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, 'image/png');
+});
+
+// ============ Keyboard shortcuts ============
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'e' && !e.ctrlKey && !e.metaKey && !e.target.closest('input,textarea')) {
+    isEraser = true;
+    currentColor = null;
+    updateCurrentColorDisplay();
+    renderPaletteSelection();
+  }
+});
+
+// ============ Initialize ============
+initGrid();
+renderAll();
+
+// Set first swatch as default
+const firstSwatch = document.querySelector('.color-swatch');
+if (firstSwatch) {
+  selectColor(firstSwatch.dataset.code);
+}
+</script>
+</body>
+</html>
